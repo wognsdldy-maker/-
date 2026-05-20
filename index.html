@@ -133,7 +133,6 @@ height: 110px;
 line-height: 1.4;
 }
 
-/* 글자 수 카운터 스타일 */
 .char-counter {
 font-size: 0.75rem;
 color: var(--text-muted);
@@ -160,7 +159,6 @@ background-color: #a5c3e0;
 cursor: not-allowed;
 }
 
-/* 커스텀 모달 팝업 스타일 */
 .modal-overlay {
 position: fixed;
 top: 0;
@@ -233,4 +231,162 @@ background-color: var(--tiffany-blue);
 color: #fff;
 border: none;
 border-radius: 8px;
-font-size: 0.95
+font-size: 0.95rem;
+font-weight: 600;
+cursor: pointer;
+}
+
+.toast-message {
+position: fixed;
+bottom: 40px;
+left: 50%;
+transform: translateX(-50%);
+background-color: #212529;
+color: #ffffff;
+padding: 12px 24px;
+border-radius: 25px;
+font-size: 0.85rem;
+opacity: 0;
+transition: opacity 0.3s;
+pointer-events: none;
+z-index: 1000;
+white-space: nowrap;
+}
+
+.toast-message.active {
+opacity: 0.95;
+}
+</style>
+</head>
+<body>
+
+<div class="mobile-viewport">
+<div class="representative-image-container">
+<img src="representative_image.png" alt="다시 돌아온 홍보톡 Season.2 플랫폼 대표 이미지" class="representative-image">
+</div>
+
+<div class="header-section">
+<h1>다시 돌아온 홍보톡 Season.2</h1>
+<p>LG에너지솔루션 홍보담당 조직문화 개선을 위한 의견 수렴 플랫폼입니다.</p>
+</div>
+
+<div class="security-banner">
+🔒 <strong>보안 및 익명성 보장 안내</strong><br>
+본 시스템은 구성원의 익명을 철저히 보장하며 완전히 독립적으로 운영됩니다. 기기의 IP나 구글 계정 세션 정보는 수집 과정에서 원천 차단되며, 오직 작성하신 텍스트 데이터만 암호화되어 전송됩니다.<br><br>
+홍보 담당의 조직문화 개선을 위해 자유로운 의견 개진 부탁드리며, 더 나은 운영을 위한 건설적인 피드백도 부탁드립니다!
+</div>
+
+<form id="cultureSurveyForm">
+<div class="form-group">
+<label for="surveyCategory">1. 안건 분류</label>
+<select id="surveyCategory" required>
+<option value="" disabled selected>카테고리를 선택해 주세요</option>
+<option value="조직문화/소통">조직문화 및 사내 소통</option>
+<option value="업무 프로세스">업무 프로세스 비효율 개선</option>
+<option value="근무환경/복지">근무 환경 및 복지</option>
+<option value="기타">기타 자유 제안</option>
+</select>
+</div>
+
+<div class="form-group">
+<label for="issueText">2. 고충 및 불만 사항 (이슈 진단)</label>
+<textarea id="issueText" placeholder="현재 겪고 계신 비효율이나 고충을 객관적인 사실 중심으로 작성해 주세요." maxlength="500" required></textarea>
+<div class="char-counter" id="issueCounter">0 / 500자</div>
+</div>
+
+<div class="form-group">
+<label for="solutionText">3. 희망 개선 방향 (대책 제안)</label>
+<textarea id="solutionText" placeholder="월 정기 회의에서 논의할 수 있는 실현 가능한 개선 아이디어를 제안해 주세요." maxlength="500" required></textarea>
+<div class="char-counter" id="solutionCounter">0 / 500자</div>
+</div>
+
+<button type="submit" class="submit-btn" id="submitBtn">익명 의견 제출</button>
+</form>
+</div>
+
+<div class="modal-overlay" id="successModal">
+<div class="modal-box">
+<div class="modal-icon">✓</div>
+<div class="modal-title">제출 완료</div>
+<div class="modal-desc">작성하신 안건이 보안 DB에 안전하게 암호화되어 적재되었습니다. 참여해 주셔서 감사합니다.</div>
+<button class="modal-close-btn" id="modalCloseBtn">확인</button>
+</div>
+</div>
+
+<div id="toast" class="toast-message">의견이 안전하게 DB에 누적되었습니다.</div>
+
+<script>
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwOT409YAuES3-3yiyEGydBZDN6oeciG5nTCxXXMrYNsMAt99PgIMSx6zl3Nk8fTyXCgA/exec';
+
+function setupCharCounter(textareaId, counterId) {
+const textarea = document.getElementById(textareaId);
+const counter = document.getElementById(counterId);
+
+textarea.addEventListener('input', function() {
+const currentLength = textarea.value.length;
+counter.innerText = `${currentLength} / 500자`;
+if(currentLength >= 500) {
+counter.style.color = '#e53e3e';
+} else {
+counter.style.color = '#6c757d';
+}
+});
+}
+
+setupCharCounter('issueText', 'issueCounter');
+setupCharCounter('solutionText', 'solutionCounter');
+
+document.getElementById('cultureSurveyForm').addEventListener('submit', function(e) {
+e.preventDefault();
+
+const submitBtn = document.getElementById('submitBtn');
+submitBtn.disabled = true;
+submitBtn.innerText = '안전하게 제출 중...';
+
+const kstOffset = 9 * 60 * 60 * 1000;
+const kstDate = new Date(Date.now() + kstOffset);
+const formattedTime = kstDate.toISOString().replace('T', ' ').substring(0, 19);
+
+const payload = {
+timestamp: formattedTime,
+category: document.getElementById('surveyCategory').value,
+complaint: document.getElementById('issueText').value,
+improvement: document.getElementById('solutionText').value
+};
+
+fetch(GOOGLE_SCRIPT_URL, {
+method: 'POST',
+mode: 'no-cors', 
+headers: {
+'Content-Type': 'text/plain'
+},
+body: JSON.stringify(payload)
+})
+.then(() => {
+document.getElementById('successModal').classList.add('active');
+triggerToast('제출 완료: 보안 DB에 누적되었습니다.');
+document.getElementById('cultureSurveyForm').reset();
+document.getElementById('issueCounter').innerText = '0 / 500자';
+document.getElementById('solutionCounter').innerText = '0 / 500자';
+})
+.catch(error => {
+console.error('Submission Error:', error);
+triggerToast('전송 실패: 통신 상태를 확인한 후 다시 시도해 주세요.');
+})
+.finally(() => {
+submitBtn.disabled = false;
+submitBtn.innerText = '익명 의견 제출';
+});
+});
+
+document.getElementById('modalCloseBtn').addEventListener('click', function() {
+document.getElementById('successModal').classList.remove('active');
+});
+
+function triggerToast(msg) {
+const toast = document.getElementById('toast');
+toast.innerText = msg;
+toast.classList.add('active');
+setTimeout(() => {
+toast.classList.remove('active');
+},
