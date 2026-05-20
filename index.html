@@ -6,7 +6,7 @@
 <title>(가칭) 다시 돌아온 홍보톡 Season.2</title>
 <style>
 :root {
---primary-color: #005aab; /* 상무님 보고용 신뢰감을 주는 딥블루 선호 */
+--primary-color: #005aab; 
 --bg-color: #f8f9fa;
 --surface-color: #ffffff;
 --text-main: #212529;
@@ -89,7 +89,7 @@ border-radius: 8px;
 font-size: 0.95rem;
 background-color: #fff;
 outline: none;
--webkit-appearance: none; /* 모바일 사파리 인풋 외형 최적화 */
+-webkit-appearance: none; 
 }
 
 select {
@@ -129,7 +129,6 @@ background-color: #a5c3e0;
 cursor: not-allowed;
 }
 
-/* 피드백용 토스트 메시지 */
 .toast-message {
 position: fixed;
 bottom: 40px;
@@ -142,120 +141,3 @@ border-radius: 25px;
 font-size: 0.85rem;
 opacity: 0;
 transition: opacity 0.3s;
-pointer-events: none;
-z-index: 1000;
-white-space: nowrap;
-}
-
-.toast-message.active {
-opacity: 0.95;
-}
-</style>
-</head>
-<body>
-
-<div class="mobile-viewport">
-<div class="header-section">
-<h1>(가칭) 다시 돌아온 홍보톡 Season.2</h1>
-<p>더 나은 홍보담당을 만들기 위한 의견 수렴 플랫폼입니다.</p>
-</div>
-
-<div class="security-banner">
-🔒 <strong>보안 및 익명성 보장 안내</strong><br>
-본 시스템은 완전히 익명으로 운영됩니다. 기기의 IP나 구글 계정 세션 정보는 수집 과정에서 원천 차단되며, 오직 작성하신 텍스트 데이터만 데이터베이스에 암호화되어 전송됩니다.<br><br>
-전달주신 안건은 익명 상태로 1차 스크리닝하여 상무님께 전달되며, 이후 개선 사항 등을 MLB 세션을 통해 공유드릴 예정입니다.<br><br>
-홍보 담당의 조직문화 개선을 위해 자유로운 의견 개진 부탁드리며, 무분별한 욕설이나 특정 인물/조직에 대한 비난 등은 삼가 부탁드립니다 :)<br><br>
-처음 시도하는 방법인만큼, 시행착오가 있을 수 있다는 점 너른 양해 부탁드리며 더 나은 운영을 위한 건설적인 피드백도 부탁드립니다!
-  
-</div>
-
-<form id="cultureSurveyForm">
-<div class="form-group">
-<label for="surveyCategory">1. 안건 분류</label>
-<select id="surveyCategory" required>
-<option value="" disabled selected>카테고리를 선택해 주세요</option>
-<option value="조직문화/소통">조직문화 및 사내 소통</option>
-<option value="업무 프로세스">업무 프로세스 비효율 개선</option>
-<option value="근무환경/복지">근무 환경 및 복지</option>
-<option value="기타">기타 자유 제안</option>
-</select>
-</div>
-
-<div class="form-group">
-<label for="issueText">2. 고충 및 불만 사항 (이슈 진단)</label>
-<textarea id="issueText" placeholder="현재 겪고 계신 비효율이나 고충을 객관적인 사실 중심으로 작성해 주세요." required></textarea>
-</div>
-
-<div class="form-group">
-<label for="solutionText">3. 희망 개선 방향 (대책 제안)</label>
-<textarea id="solutionText" placeholder="월 정기 회의에서 논의할 수 있는 실현 가능한 개선 아이디어를 제안해 주세요." required></textarea>
-</div>
-
-<button type="submit" class="submit-btn" id="submitBtn">익명 의견 제출</button>
-</form>
-</div>
-
-<div id="toast" class="toast-message">의견이 안전하게 DB에 누적되었습니다.</div>
-
-<script>
-// ⚠️ 중요: 구글 앱스 스크립트 배포 시 발급받은 실제 웹 앱 URL을 아래에 정확히 입력하세요.
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRrkjw1AGSPjWAj6C4It-tGVyqkx7zx_C8MXDLC3U_lCmwwYvU2MG6509KatXp1WNf/exec';
-
-document.getElementById('cultureSurveyForm').addEventListener('submit', function(e) {
-e.preventDefault();
-
-const submitBtn = document.getElementById('submitBtn');
-submitBtn.disabled = true;
-submitBtn.innerText = '안전하게 제출 중...';
-
-// 한국 시간 기준 타임스탬프 가공
-const kstOffset = 9 * 60 * 60 * 1000;
-const kstDate = new Date(Date.now() + kstOffset);
-const formattedTime = kstDate.toISOString().replace('T', ' ').substring(0, 19);
-
-// 데이터 구조화 (브라우저 메타데이터 수집을 완전히 배제하여 익명성 확보)
-const payload = {
-timestamp: formattedTime,
-category: document.getElementById('surveyCategory').value,
-complaint: document.getElementById('issueText').value,
-improvement: document.getElementById('solutionText').value
-};
-
-// 구글 클라우드 앱스 스크립트로 비동기 전송
-fetch(GOOGLE_SCRIPT_URL, {
-method: 'POST',
-mode: 'no-cors', // 모바일 웹 브라우저 간 크로스 도메인 보안 정책 우회용 설정
-headers: {
-Content-Type': 'application/json'
-},
-body: JSON.stringify(payload)
-})
-.then(() => {
-triggerToast('제출 완료: 작성하신 안건이 보안 DB에 적재되었습니다.');
-document.getElementById('cultureSurveyForm').reset();
-})
-.catch(error => {
-console.error('Submission Error:', error);
-triggerToast('전송 실패: 통신 상태를 확인한 후 다시 시도해 주세요.');
-})
-.finally(() => {
-submitBtn.disabled = false;
-submitBtn.innerText = '익명 의견 제출';
-});
-});
-
-function triggerToast(msg) {
-const toast = document.getElementById('toast');
-toast.innerText = msg;
-toast.classList.add('active');
-setTimeout(() => {
-toast.classList.remove('active');
-}, 3500);
-}
-</script>
-</body>
-</html>
-
-
-
-
